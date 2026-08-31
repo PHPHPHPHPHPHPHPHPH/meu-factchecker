@@ -8,7 +8,7 @@ st.set_page_config(
     layout="centered"
 )
 
-# Chave API protegida (vamos configurar isso na hospedagem)
+# Chave API protegida configurada no Streamlit Cloud Secrets
 CHAVE_API_GEMINI = st.secrets["CHAVE_API_GEMINI"]
 
 def checar_fato_definitivo(afirmacao):
@@ -29,15 +29,17 @@ def checar_fato_definitivo(afirmacao):
         [Crie um ou dois parágrafos longos, aprofundados e explicativos contendo o consenso científico ou médico sobre o assunto]
         """
         
+        # Gera o conteúdo de forma limpa e direta
         resposta = model.generate_content(prompt)
         
-        if resposta.candidates and len(resposta.candidates) > 0:
-            partes_texto = [part.text for part in resposta.candidates.content.parts if part.text]
-            return "".join(partes_texto)
-        return "⚠️ A resposta retornou vazia da API."
+        # CORREÇÃO DEFINITIVA PARA O SDK DE 2026:
+        # O objeto de resposta moderno já extrai o texto completo diretamente em .text
+        if resposta and resposta.text:
+            return resposta.text
+        return "⚠️ A resposta retornou vazia da API do Gemini."
         
     except Exception as e:
-        return f"🚨 Erro de Sistema: {e}"
+        return f"🚨 Erro de Sistema ao processar resposta: {e}"
 
 # --- INTERFACE DO USUÁRIO (MOBILE FRIENDLY) ---
 st.title("🤖 Verificador de Fatos Inteligente")
