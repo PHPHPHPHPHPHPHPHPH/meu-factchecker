@@ -1,16 +1,17 @@
 import streamlit as st
 import google.generativeai as genai
 
-# Configuração da página mobile-friendly
 st.set_page_config(
     page_title="Fact-Checker IA",
     page_icon="⚖️",
     layout="centered"
 )
 
-# Chave API protegida configurada no Streamlit Cloud Secrets
 CHAVE_API_GEMINI = st.secrets["CHAVE_API_GEMINI"]
 
+# SOLUÇÃO PARA A COTA: O Cache salva as respostas por 1 hora (3600 segundos) 
+# para não estourar os limites da API à toa.
+@st.cache_data(ttl=3600)
 def checar_fato_definitivo(afirmacao):
     try:
         genai.configure(api_key=CHAVE_API_GEMINI)
@@ -42,18 +43,14 @@ def checar_fato_definitivo(afirmacao):
 st.title("🤖 Verificador de Fatos Inteligente")
 st.write("Digite uma afirmação ou boato para receber uma análise baseada em consenso científico.")
 
-# SOLUÇÃO DO LOOP INFINITO: Envelopar os elementos em um Form estruturado
 with st.form(key="meu_formulario_factcheck"):
-    # Caixa de texto adaptada para celular
     frase_teste = st.text_input("O que você quer checar?", placeholder="Ex: Tomar muita coca cola faz mal à saúde")
-    
-    # Botão de envio integrado ao formulário
     botao_enviar = st.form_submit_button("🔍 Processar Veredicto", use_container_width=True)
 
-# O código abaixo só roda de maneira limpa após o clique e não trava a página
 if botao_enviar:
     if frase_teste.strip():
         with st.spinner("🧠 Consultando inteligência de dados..."):
+            # O Streamlit confere no cache antes de chamar a API externa
             resultado = checar_fato_definitivo(frase_teste)
             st.markdown("---")
             st.markdown(resultado)
