@@ -1,7 +1,7 @@
 import streamlit as st
 import google.generativeai as genai
 
-# Configuração da página para ficar bonita no celular
+# Configuração da página mobile-friendly
 st.set_page_config(
     page_title="Fact-Checker IA",
     page_icon="⚖️",
@@ -29,11 +29,8 @@ def checar_fato_definitivo(afirmacao):
         [Crie um ou dois parágrafos longos, aprofundados e explicativos contendo o consenso científico ou médico sobre o assunto]
         """
         
-        # Gera o conteúdo de forma limpa e direta
         resposta = model.generate_content(prompt)
         
-        # CORREÇÃO DEFINITIVA PARA O SDK DE 2026:
-        # O objeto de resposta moderno já extrai o texto completo diretamente em .text
         if resposta and resposta.text:
             return resposta.text
         return "⚠️ A resposta retornou vazia da API do Gemini."
@@ -41,15 +38,20 @@ def checar_fato_definitivo(afirmacao):
     except Exception as e:
         return f"🚨 Erro de Sistema ao processar resposta: {e}"
 
-# --- INTERFACE DO USUÁRIO (MOBILE FRIENDLY) ---
+# --- INTERFACE DO USUÁRIO ---
 st.title("🤖 Verificador de Fatos Inteligente")
 st.write("Digite uma afirmação ou boato para receber uma análise baseada em consenso científico.")
 
-# Caixa de texto adaptada para celular
-frase_teste = st.text_input("O que você quer checar?", placeholder="Ex: Tomar muita coca cola faz mal à saúde")
+# SOLUÇÃO DO LOOP INFINITO: Envelopar os elementos em um Form estruturado
+with st.form(key="meu_formulario_factcheck"):
+    # Caixa de texto adaptada para celular
+    frase_teste = st.text_input("O que você quer checar?", placeholder="Ex: Tomar muita coca cola faz mal à saúde")
+    
+    # Botão de envio integrado ao formulário
+    botao_enviar = st.form_submit_button("🔍 Processar Veredicto", use_container_width=True)
 
-# Botão grande e fácil de clicar na tela touch
-if st.button("🔍 Processar Veredicto", use_container_width=True):
+# O código abaixo só roda de maneira limpa após o clique e não trava a página
+if botao_enviar:
     if frase_teste.strip():
         with st.spinner("🧠 Consultando inteligência de dados..."):
             resultado = checar_fato_definitivo(frase_teste)
